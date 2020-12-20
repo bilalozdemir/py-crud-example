@@ -1,40 +1,131 @@
-"""# pylint: disable=E0611
-import asyncio
-from typing import Generator
-
+# pylint: disable=E0611
 import pytest
-from fastapi.testclient import TestClient
-from main import app
-from models import Users
+from httpx import AsyncClient
 
-from tortoise.contrib.test import finalizer, initializer
+from api import api, models, db
 
 
-@pytest.fixture(scope="module")
-def client() -> Generator:
-    initializer(["models"])
-    with TestClient(app) as c:
-        yield c
-    finalizer()
+@pytest.mark.asyncio
+async def test_testing_endpoint():
+    async with AsyncClient(app=api.app, base_url="http://test") as ac:
+        response = await ac.get("/test")
+    assert response.status_code == 200
+    assert response.json() == {
+        "ok": "Testing",
+        "msg": "If you see this message it means you're on the right way."
+    }
+
+@pytest.mark.skip(reason="Skipping incomplete test")
+async def test_create_user(self):
+    async with AsyncClient(app=api.app, base_url="http://test") as ac:
+        response = await ac.post(
+            '/register',
+            json={
+                "first_name": "joHn",
+                "last_name": "dOE",
+                "email": "john.doe@mail.me",
+                "username": "asuperuser",
+                "password": "Sup3rS@f3P@55w0rd"
+            }
+        )
+    assert response.status_code == 200
+    assert response.json() == {
+        "ok": "Testing",
+        "msg": "If you see this message it means you're on the right way."
+    }
 
 
-@pytest.fixture(scope="module")
-def event_loop(client: TestClient) -> Generator:
-    yield client.task.get_loop()
+@pytest.mark.skip(reason="Skipping incomplete test")
+async def test_get_user(self):
+    response = await c.get('/user/1')
+    assert response.status_code == 200
+    assert response.json() == {
+        "ok": "Successful",
+        "msg": "User hebele created successfully!"
+    }
 
 
-def test_create_user(client: TestClient, event_loop: asyncio.AbstractEventLoop):  # nosec
-    response = client.post("/users", json={"username": "admin"})
-    assert response.status_code == 200, response.text
-    data = response.json()
-    assert data["username"] == "admin"
-    assert "id" in data
-    user_id = data["id"]
+@pytest.mark.skip(reason="Skipping incomplete test")
+async def test_get_users(self):
+    response = await c.get('/users')
+    assert response.status_code == 200
+    assert response.json() == {
+        "ok": "Successful",
+        "msg": "User hebele created successfully!"
+    }
 
-    async def get_user_by_db():
-        user = await Users.get(id=user_id)
-        return user
 
-    user_obj = event_loop.run_until_complete(get_user_by_db())
-    assert user_obj.id == user_id
-"""
+@pytest.mark.skip(reason="Skipping incomplete test")
+async def test_delete_user(self):
+    response = await c.post(
+        '/register',
+        json={
+            "first_name": "joHn",
+            "last_name": "dOE",
+            "email": "john.doe@mail.me",
+            "username": "asuperuser",
+            "password": "Sup3rS@f3P@55w0rd"
+        }
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "ok": "Successful",
+        "msg": "User hebele created successfully!"
+    }
+
+
+@pytest.mark.skip(reason="Skipping incomplete test")
+async def test_login(self):
+    response = await c.post(
+        '/register',
+        json={
+            "first_name": "joHn",
+            "last_name": "dOE",
+            "email": "john.doe@mail.me",
+            "username": "asuperuser",
+            "password": "Sup3rS@f3P@55w0rd"
+        }
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "ok": "Successful",
+        "msg": "User hebele created successfully!"
+    }
+
+
+@pytest.mark.skip(reason="Skipping incomplete test")
+async def test_change_password(self):
+    response = await c.post(
+        '/register',
+        json={
+            "first_name": "joHn",
+            "last_name": "dOE",
+            "email": "john.doe@mail.me",
+            "username": "asuperuser",
+            "password": "Sup3rS@f3P@55w0rd"
+        }
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "ok": "Successful",
+        "msg": "User hebele created successfully!"
+    }
+
+
+@pytest.mark.skip(reason="Skipping incomplete test")
+async def test_logout(self):
+    response = await c.post(
+        '/register',
+        json={
+            "first_name": "joHn",
+            "last_name": "dOE",
+            "email": "john.doe@mail.me",
+            "username": "asuperuser",
+            "password": "Sup3rS@f3P@55w0rd"
+        }
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "ok": "Successful",
+        "msg": "User hebele created successfully!"
+    }

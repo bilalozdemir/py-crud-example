@@ -2,7 +2,7 @@ from typing import Optional, Union, List, Dict
 
 from pydantic import BaseModel, ValidationError, validator, EmailStr
 
-import util
+from api import util
 
 class RegisterRequest(BaseModel):
     first_name: str

@@ -5,12 +5,14 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
-import util, db, models
+from api import util, db, models
 
 app = FastAPI()
 
 origins = [
     "http://localhost:8000",
+    "http://localhost",
+    "http://test",
 ]
 
 app.add_middleware(
@@ -32,7 +34,7 @@ def shutdown_event():
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
-    return await JSONResponse(
+    return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content=models.ErrResponseModel(
             err="Bad Request",
@@ -40,10 +42,20 @@ async def validation_exception_handler(request, exc):
         )
     )
 
-@app.post('/register')
+@app.get('/test', response_model_exclude={"data"})
+async def testing_endpoint():
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content=models.OkResponseModel(
+            ok="Testing",
+            msg="If you see this message it means you're on the right way."
+        ).dict()
+    )
+
+@app.post('/register', response_model_exclude={"data"})
 async def create_user(_request: models.RegisterRequest):
     await db.create_user(_request)
-    return await JSONResponse(
+    return JSONResponse(
         status=status.HTTP_201_CREATED,
         content=models.OkResponseModel(
             ok="Successful",
@@ -55,27 +67,27 @@ async def create_user(_request: models.RegisterRequest):
 async def get_user(user_id: int):
     result = await db.get_user_s(user_id)
     if "err" in result:
-        return await JSONResponse(
+        return JSONResponse(
             status=status.HTTP_404_NOT_FOUND,
             content=models.ErrResponseModel(result)
         )
-    return await JSONResponse(
+    return JSONResponse(
         status=status.HTTP_200_OK,
         content=models.OkResponseModel(result)
     )
 
-@app.delete('/user/{user_id}')
+@app.delete('/user/{user_id}', response_model_exclude={"data"})
 async def delete_user(user_id: int):
     deleted = await db.delete_user(user_id)
     if deleted:
-        return await JSONResponse(
+        return JSONResponse(
             status=status.HTTP_200_OK,
             content=models.OkResponseModel(
                 ok="Deleted",
                 msg=f"User <{user_id}> deleted successfully!"
             )
         )
-    return await JSONResponse(
+    return JSONResponse(
         status=status.HTTP_404_NOT_FOUND,
         content=models.ErrResponseModel(
             err="Not Found",
@@ -87,16 +99,16 @@ async def delete_user(user_id: int):
 async def get_users():
     result = await db.get_user_s()
     if "err" in result:
-        return await JSONResponse(
+        return JSONResponse(
             status=status.HTTP_404_NOT_FOUND,
             content=models.ErrResponseModel(result)
         )
-    return await JSONResponse(
+    return JSONResponse(
         status=status.HTTP_200_OK,
         content=models.OkResponseModel(result)
     )
 
-@app.post('/login')
+@app.post('/login', response_model_exclude={"data"})
 async def login(_request: models.LoginRequest, jwt_token: Optional[str] = Cookie(None)):
     if jwt_token:
         decoded = util.jwt_decode(jwt_token)
@@ -130,10 +142,10 @@ async def login(_request: models.LoginRequest, jwt_token: Optional[str] = Cookie
         response.set_cookie(key="jwt_token", value=util.jwt_encode(_request['username']))
         return response
 
-@app.put('/change_password')
+@app.put('/change_password', response_model_exclude={"data"})
 async def change_password(_request: models.ChangePasswordRequest, jwt_token: Optional[str] = Cookie(None)):
     if not jwt_token:
-        return await JSONResponse(
+        return JSONResponse(
             status=status.HTTP_401_UNAUTHORIZED,
             content=models.ErrResponseModel(
                 err="Unauthorized",
@@ -143,7 +155,7 @@ async def change_password(_request: models.ChangePasswordRequest, jwt_token: Opt
 
     decoded = util.jwt_decode(jwt_token)
     if "err" in decoded:
-        return await JSONResponse(
+        return JSONResponse(
             status=status.HTTP_401_UNAUTHORIZED,
             content=models.ErrResponseModel(
                 err="Unauthorized",
@@ -152,7 +164,7 @@ async def change_password(_request: models.ChangePasswordRequest, jwt_token: Opt
         )
 
     await db.change_password(decoded["username"], util.hash_password(_request["password"]))
-    return await JSONResponse(
+    return JSONResponse(
         status=status.HTTP_200_OK,
         content=models.OkResponseModel(
             ok="Successful",
@@ -160,7 +172,7 @@ async def change_password(_request: models.ChangePasswordRequest, jwt_token: Opt
         )
     )
 
-@app.get('/logout')
+@app.get('/logout', response_model_exclude={"data"})
 async def logout(jwt_token: Optional[str] = Cookie(None)):
     if jwt_token:
         decoded = util.jwt_decode(jwt_token)

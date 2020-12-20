@@ -4,7 +4,7 @@ from typing import Optional, Union, List
 from tortoise import Tortoise, models, fields
 from tortoise.exceptions import DoesNotExist
 
-from util import check_password
+from api.util import check_password
 
 class User(models.Model):
     id = fields.IntField(pk=True)
