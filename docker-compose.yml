@@ -1,0 +1,21 @@
+version: "3"
+
+services:
+  api:
+    build: .
+    container_name: "api"
+    env_file:
+      - .env.api
+      - .env.db
+    ports:
+      - "8000:8000"
+    depends_on:
+      - maria_db
+
+  maria_db:
+    image: mariadb
+    env_file:
+      - .env.db
+    restart: always
+    ports:
+      - "0.0.0.0:3306:3306"
